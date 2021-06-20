@@ -20,18 +20,15 @@ extern "C"{
  void app_main();
 }
 
-//TTRX_Transmitter tx;
+PPMReader RemoteInput((uint8_t)13,(uint8_t)0);
 void app_main(void)
 {
     cout << "Started Programm version 0.1 compilled on"<<__DATE__<<" "<<__TIME__<<endl;      
-    PPMReader RemoteInput((uint8_t)13,(uint8_t)0);
-    //TTRX_Transmitter::init();
-    //thread adv_thread(transmitt_rc_channels);
+    TTRX_Transmitter::init();
+    thread adv_thread(transmitt_rc_channels);
     //adv_thread.join()
-    while(true){
-    cout<<"Throttle:"<<RemoteInput.readChannel(2)<<endl;
-    this_thread::sleep_for(chrono::milliseconds(500));
-    }
+
+    //this_thread::sleep_for(chrono::milliseconds(500));  
     cout << "Programm finished\n";
 }
 
@@ -39,6 +36,7 @@ void app_main(void)
 void transmitt_rc_channels()
 {
     while(true){
+
         //TTRX_Transmitter::send((uint8_t*)(&t),static_cast<size_t>(4));        
         this_thread::sleep_for(chrono::milliseconds(Constants::advertisement_delay_ms));
         cout << "!";
