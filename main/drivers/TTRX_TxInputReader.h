@@ -15,16 +15,16 @@
 #define RMT_CLK_DIV      10    /*!< RMT counter clock divider */
 #define RMT_TICK_US    (80000000/RMT_CLK_DIV/1000000)   /*!< RMT counter value for 10 us.(Source clock is APB clock) */
 #define PPM_TIMEOUT_US  3500   /*!< RMT receiver timeout value(us) */
-
-
 namespace TTRX_Remote{ 
     class RMT_Wrapper{
-            std::vector<int8_t> occupiedChannels;
+        private:         
+            static std::mutex rmtChLock;       
         public:
-            int requestChannel();
-            void freeChannel(int8_t channel);
+            static bool occupiedChannels[];
+            static uint8_t requestChannel();
+            static void freeChannel(uint8_t channel);
+            static uint8_t freeChannelCount();
     };
-
     class PPMReader{
         private:
             rmt_channel_t rmt_channel;
@@ -32,8 +32,9 @@ namespace TTRX_Remote{
             std::vector<uint16_t> channels ={0,0,0,0,0,0};
             void readChannels();
         public:            
-            PPMReader(uint8_t gpio,uint8_t channel);
+            PPMReader(uint8_t gpio);
             uint16_t readChannel(uint8_t num);     
+            uint16_t operator[](int);
             friend void taskreadChannels(void* param);
     };
     void taskreadChannels(void* param);

@@ -3,11 +3,12 @@
 #include <chrono>
 namespace TTRX_Remote
 {
-  class Constants{
-    public:
-      static int const advertisement_delay_ms;
-      static uint8_t const broadcast_mac[6];
-      static uint8_t const receiver_mac[6];
+  class Constants
+  {
+  public:
+    static int const broadcast_frequency_ms;
+    static uint8_t const broadcast_mac[6];
+    static uint8_t const receiver_mac[6];
   };
 }
 #endif
