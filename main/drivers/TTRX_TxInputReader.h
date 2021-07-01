@@ -23,7 +23,7 @@ namespace TTRX_Remote{
             static bool occupiedChannels[];
             static uint8_t requestChannel();
             static void freeChannel(uint8_t channel);
-            static uint8_t freeChannelCount();
+            static uint8_t availableChannelCount();
     };
     class PPMReader{
         private:

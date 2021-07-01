@@ -2,6 +2,7 @@
 #include "../TTRX_Exceptions.h"
 #include <numeric>
 using namespace TTRX_Remote;
+using namespace std;
 PPMReader::PPMReader(uint8_t gpio)
 {
     rmt_config_t rmt_rx;
@@ -74,32 +75,27 @@ bool RMT_Wrapper::occupiedChannels[RMT_CHANNEL_MAX] = {0};
 std::mutex RMT_Wrapper::rmtChLock;
 uint8_t RMT_Wrapper::requestChannel()
 {
-    rmtChLock.lock();
+    lock_guard<mutex> lock(rmtChLock);
     for (int i = 0; i < RMT_CHANNEL_MAX; i++)
     {
         if (occupiedChannels[i] == false)
         {
             occupiedChannels[i]=true;
-            rmtChLock.unlock();
             return i;
         }
     }
-    rmtChLock.unlock();
     throw TTRX_Exception("Could not find any free RMT Channels");
 }
 void RMT_Wrapper::freeChannel(uint8_t channel){
-    rmtChLock.lock();
+    lock_guard<mutex> lock(rmtChLock);
     if(channel<RMT_CHANNEL_MAX){
         occupiedChannels[channel]=false;
-        rmtChLock.unlock();
         return;
     }
-    rmtChLock.unlock();
     throw TTRX_Exception("Could not free that channel");
 }
-uint8_t RMT_Wrapper::freeChannelCount(){
-    rmtChLock.lock();
+uint8_t RMT_Wrapper::availableChannelCount(){
+    lock_guard<mutex> lock(rmtChLock);
     uint8_t num = (uint8_t)(RMT_CHANNEL_MAX-std::accumulate(occupiedChannels,occupiedChannels + RMT_CHANNEL_MAX, 0));
-    rmtChLock.unlock();
     return num;
 }
