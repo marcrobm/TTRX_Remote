@@ -6,7 +6,7 @@ using namespace std;
 PPMReader::PPMReader(uint8_t gpio)
 {
     rmt_config_t rmt_rx;
-    rmt_rx.channel = (rmt_channel_t)RMT_Wrapper::requestChannel();
+    rmt_rx.channel = (rmt_channel_t)RMTChannelsM.requestChannel();
     rmt_rx.gpio_num = (gpio_num_t)gpio;
     rmt_rx.clk_div = RMT_CLK_DIV;
     rmt_rx.mem_block_num = 1;
@@ -66,36 +66,7 @@ uint16_t PPMReader::readChannel(uint8_t num)
     rc_vector_lock.unlock();
     return val;
 }
-uint16_t PPMReader::operator[](int i){
-    return readChannel((uint8_t)i);
-}
-
-//RMT_Wrapper
-bool RMT_Wrapper::occupiedChannels[RMT_CHANNEL_MAX] = {0};
-std::mutex RMT_Wrapper::rmtChLock;
-uint8_t RMT_Wrapper::requestChannel()
+uint16_t PPMReader::operator[](int i)
 {
-    lock_guard<mutex> lock(rmtChLock);
-    for (int i = 0; i < RMT_CHANNEL_MAX; i++)
-    {
-        if (occupiedChannels[i] == false)
-        {
-            occupiedChannels[i]=true;
-            return i;
-        }
-    }
-    throw TTRX_Exception("Could not find any free RMT Channels");
-}
-void RMT_Wrapper::freeChannel(uint8_t channel){
-    lock_guard<mutex> lock(rmtChLock);
-    if(channel<RMT_CHANNEL_MAX){
-        occupiedChannels[channel]=false;
-        return;
-    }
-    throw TTRX_Exception("Could not free that channel");
-}
-uint8_t RMT_Wrapper::availableChannelCount(){
-    lock_guard<mutex> lock(rmtChLock);
-    uint8_t num = (uint8_t)(RMT_CHANNEL_MAX-std::accumulate(occupiedChannels,occupiedChannels + RMT_CHANNEL_MAX, 0));
-    return num;
+    return readChannel((uint8_t)i);
 }

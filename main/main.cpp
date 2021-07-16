@@ -15,28 +15,35 @@ using namespace std;
 using namespace TTRX_Remote;
 
 //own functions
-void transmitt_rc_channels();
-extern "C"{
- void app_main();
+void transmittRcChannels();
+extern "C"
+{
+    void app_main();
 }
 
 PPMReader RemoteInput((uint8_t)13);
 void app_main(void)
 {
-    cout << "Started Programm version 0.1 compilled on"<<__DATE__<<" "<<__TIME__<<endl;      
+    cout << "Started Programm version 0.1 compilled on " << __DATE__ << " " << __TIME__ << endl;
     TTRX_Transmitter::init();
-    thread adv_thread(transmitt_rc_channels);
+    thread adv_thread(transmittRcChannels);
     adv_thread.join();
     cout << "Programm finished\n";
 }
 
-
-void transmitt_rc_channels()
+void transmittRcChannels()
 {
-    while(true){
-        //TTRX_Transmitter::send((uint8_t*)(&t),static_cast<size_t>(4));        
+    uint16_t *buf = (uint16_t *)calloc(8, sizeof(uint16_t));
+    while (true)
+    {
+        for (int i = 0; i < 8; i++)
+        {
+            buf[i] = RemoteInput[i];
+        }
+        TTRX_Transmitter::send((uint8_t *)(&buf), static_cast<size_t>(8));
         this_thread::sleep_for(chrono::milliseconds(Constants::broadcast_frequency_ms));
-        cout << "Channel3:"<<RemoteInput[2]<<endl;
-        cout << "!";
+        //cout << "Channel3:"<<RemoteInput[2]<<endl;
+        //cout << "!";
     }
+    free(buf);
 }
