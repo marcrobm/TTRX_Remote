@@ -5,7 +5,8 @@
 #include <inttypes.h>
 //only using RMT_CHANNEL_MAX
 #include "driver/rmt.h"
-
+#define LEDC_HIGH_CHANNEL_MAX 8
+#define LEDC_LOW_CHANNEL_MAX 8
 namespace TTRX_Remote
 {
      class ChannelManager
@@ -21,5 +22,7 @@ namespace TTRX_Remote
           uint8_t availableChannelCount();
      };
      extern ChannelManager RMTChannelsM;
+     extern ChannelManager LedcChannelsLowM;
+     extern ChannelManager LedcChannelsHighM;
 }
 #endif

@@ -30,6 +30,7 @@ namespace TTRX_Remote
         uint16_t readChannel(uint8_t num);
         uint16_t operator[](int);
         friend void taskreadChannels(void *param);
+        ~PPMReader();
     };
     void taskreadChannels(void *param);
 }

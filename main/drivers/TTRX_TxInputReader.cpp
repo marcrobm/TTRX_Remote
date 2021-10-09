@@ -41,7 +41,6 @@ void PPMReader::readChannels()
             rc_vector_lock.lock();
             ppmchannelcount = (length / 4) - 1;
             channels.resize(ppmchannelcount);
-            //printf("PPM RX %d (%d) channels: ", ppmchannelcount, length);
             for (int i = 0; i < ppmchannelcount; i++)
             {
                 channels[i] = (item[i].duration1 + item[i].duration0) / RMT_TICK_US;
@@ -69,4 +68,8 @@ uint16_t PPMReader::readChannel(uint8_t num)
 uint16_t PPMReader::operator[](int i)
 {
     return readChannel((uint8_t)i);
+}
+PPMReader::~PPMReader(){
+    RMTChannelsM.freeChannel(static_cast<int>(rmt_channel));
+    rmt_driver_uninstall(rmt_channel);
 }

@@ -19,7 +19,7 @@ namespace TTRX_Remote
                 return i;
             }
         }
-        throw TTRX_Exception("Could not find any free RMT Channels");
+        throw TTRX_Exception("Could not find any free Channels");
     }
     void ChannelManager::freeChannel(uint8_t channel)
     {
@@ -38,4 +38,6 @@ namespace TTRX_Remote
         return num;
     }
     ChannelManager RMTChannelsM(RMT_CHANNEL_MAX);
+    ChannelManager LedcChannelsHighM(LEDC_HIGH_CHANNEL_MAX);
+    ChannelManager LedcChannelsLowM(LEDC_LOW_CHANNEL_MAX);
 }

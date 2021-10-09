@@ -42,6 +42,13 @@ void TTRX_Transmitter::init_espnow()
     other_device->channel = 0;                                     //use default wifi channel
     other_device->encrypt = false;
     cout << "addpeerresult:" << esp_now_add_peer(other_device) << "\n";
+    esp_now_peer_info_t *other_device1 = (esp_now_peer_info_t *)calloc(1, sizeof(esp_now_peer_info_t));
+    memcpy(other_device1->peer_addr, &Constants::receiver_mac, 6); //Todo
+    other_device1->channel = 0;                                     //use default wifi channel
+    other_device1->encrypt = false;
+    cout << "addpeerresult:" << esp_now_add_peer(other_device1) << "\n";
+
+
     free(other_device);
 }
 void TTRX_Transmitter::init()
