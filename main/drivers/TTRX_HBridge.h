@@ -1,6 +1,25 @@
+#ifndef TTRX_HBridge_H
+#define TTRX_HBridge_H
+#include "driver/ledc.h"
+#include "TTRX_ChannelManager.h"
 namespace TTRX_Remote
 {
-    class TTRX_HBridge{
-        TTRX_HBridge(int gpio_D0, int gpio_D1);
-    }
+    #define TTRX_HBridge_PWM_Frequency 5000 //in Hz
+    #define TTRX_HBridge_Duty_Resolution LEDC_TIMER_10_BIT
+    //should be threadsave
+    class HBridge{
+        private:
+            float outputPower;
+            bool movingPositive;
+            ledc_channel_t pwmChannel;
+            gpio_num_t d0;
+            gpio_num_t d1;
+        public:
+            HBridge(gpio_num_t d0,gpio_num_t d1);
+            void setPower(float power);
+            static ledc_timer_t HBridgeTimer;
+            static ledc_mode_t speedMode;
+    };    
+    ledc_timer_t HBridgeSetupTimer();
 }
+#endif

@@ -40,4 +40,5 @@ namespace TTRX_Remote
     ChannelManager RMTChannelsM(RMT_CHANNEL_MAX);
     ChannelManager LedcChannelsHighM(LEDC_HIGH_CHANNEL_MAX);
     ChannelManager LedcChannelsLowM(LEDC_LOW_CHANNEL_MAX);
+    ChannelManager LedcTimersM(LEDC_TIMER_COUNT_MAX);
 }
