@@ -4,8 +4,8 @@
 #include "TTRX_ChannelManager.h"
 namespace TTRX_Remote
 {
-    #define TTRX_HBridge_PWM_Frequency 5000 //in Hz
-    #define TTRX_HBridge_Duty_Resolution LEDC_TIMER_10_BIT
+    #define TTRX_HBridge_PWM_Frequency 1000 //in Hz
+    #define TTRX_HBridge_Duty_Resolution LEDC_TIMER_6_BIT
     //should be threadsave
     class HBridge{
         private:

@@ -30,16 +30,16 @@ void app_main(void)
 }
 void updateMotors(){
     while(true){
-for(float i = 0 ;i<0.6;i+=0.01){
-    this_thread::sleep_for(chrono::milliseconds(30));
-    mainMotor.setPower(i);
-}
-mainMotor.setPower(0);
-this_thread::sleep_for(chrono::milliseconds(2000));
-for(float i = 1 ;i> -0.6 ;i-=0.01){
-    this_thread::sleep_for(chrono::milliseconds(30));
-    mainMotor.setPower(i);
-}
+    for(float i = 0 ;i<1;i+=0.01){
+        this_thread::sleep_for(chrono::milliseconds(30));
+        mainMotor.setPower(i);
+    }
+    mainMotor.setPower(0);
+    this_thread::sleep_for(chrono::milliseconds(1000));
+        for(float i = 1 ;i> -1 ;i-=0.01){
+            this_thread::sleep_for(chrono::milliseconds(30));
+            mainMotor.setPower(i);
+        }
     }
 }
 

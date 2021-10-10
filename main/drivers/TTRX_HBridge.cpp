@@ -29,9 +29,12 @@ void HBridge::setPower(float power){
       //changed direction
         movingPositive = (power >= 0);
         ledc_channel_config_t configPwmCh;
-        TTRX_Exception::ThrowOnEspErr(ledc_stop(speedMode,pwmChannel,0));
-        if(power>0){
-            gpio_set_level(d1,0);
+        //TTRX_Exception::ThrowOnEspErr(ledc_stop(speedMode,pwmChannel,0));
+        if(power>=0){
+           //required to unbind pin from ledc channel
+           gpio_reset_pin(d1);
+           gpio_set_direction(d1,GPIO_MODE_OUTPUT);
+           gpio_set_level(d1,0);
             configPwmCh = {
             .gpio_num = d0,
             .speed_mode = speedMode,
@@ -42,7 +45,10 @@ void HBridge::setPower(float power){
             .hpoint = 0,
             };
        }else{
-           gpio_set_level(d0,0);
+         //required to unbind pin from ledc channel
+              gpio_reset_pin(d0);
+              gpio_set_direction(d0,GPIO_MODE_OUTPUT);
+              gpio_set_level(d0,0);
            configPwmCh = {
             .gpio_num = d1,
             .speed_mode = speedMode,
