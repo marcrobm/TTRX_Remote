@@ -6,10 +6,10 @@ namespace TTRX_Remote
 {
 
 HBridge::HBridge(gpio_num_t d0,gpio_num_t d1): outputPower(0),movingPositive(false),d0(d0),d1(d1) {
-//setup gpio pins as output
+  //setup gpio pins as output
   gpio_set_direction(d0,GPIO_MODE_OUTPUT);
   gpio_set_direction(d1,GPIO_MODE_OUTPUT);
-//setup pwm_channel for HBridge
+  //setup pwm_channel for HBridge
   pwmChannel = static_cast<ledc_channel_t>((speedMode == LEDC_HIGH_SPEED_MODE)?LedcChannelsHighM.requestChannel():LedcChannelsLowM.requestChannel());
   ledc_channel_config_t configPwmCh = {
   .gpio_num = d0,
@@ -22,14 +22,24 @@ HBridge::HBridge(gpio_num_t d0,gpio_num_t d1): outputPower(0),movingPositive(fal
   };
   TTRX_Exception::ThrowOnEspErr(ledc_channel_config(&configPwmCh));
 }
-
+HBridge::~HBridge(){
+    ledc_stop(speedMode,pwmChannel,0);
+    gpio_reset_pin(d0);
+    gpio_reset_pin(d1);
+    gpio_set_direction(d0,GPIO_MODE_DISABLE);
+    gpio_set_direction(d1,GPIO_MODE_DISABLE); 
+    if(speedMode == LEDC_HIGH_SPEED_MODE){
+        LedcChannelsHighM.freeChannel(static_cast<uint8_t>(pwmChannel));
+    }else{
+        LedcChannelsLowM.freeChannel(static_cast<uint8_t>(pwmChannel));
+    }
+}
 
 void HBridge::setPower(float power){
     if(movingPositive != (power >= 0)){
       //changed direction
         movingPositive = (power >= 0);
         ledc_channel_config_t configPwmCh;
-        //TTRX_Exception::ThrowOnEspErr(ledc_stop(speedMode,pwmChannel,0));
         if(power>=0){
            //required to unbind pin from ledc channel
            gpio_reset_pin(d1);
