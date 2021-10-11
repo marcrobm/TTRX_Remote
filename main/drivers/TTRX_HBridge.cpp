@@ -61,7 +61,7 @@ void HBridge::setPower(float power){
        }
        TTRX_Exception::ThrowOnEspErr(ledc_channel_config(&configPwmCh));
     }
-    uint32_t duty = static_cast<uint32_t>(std::abs(power)*pow(2,TTRX_HBridge_Duty_Resolution));
+    uint32_t duty = static_cast<uint32_t>(std::abs(power)*(pow(2,TTRX_HBridge_Duty_Resolution)-1));
     TTRX_Exception::ThrowOnEspErr(ledc_set_duty(speedMode,pwmChannel,duty));
     TTRX_Exception::ThrowOnEspErr(ledc_update_duty(speedMode,pwmChannel));
 }
