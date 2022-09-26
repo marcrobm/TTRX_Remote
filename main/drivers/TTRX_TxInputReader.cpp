@@ -16,7 +16,7 @@ PPMReader::PPMReader(uint8_t gpio)
     rmt_rx.rx_config.idle_threshold = PPM_TIMEOUT_US * (RMT_TICK_US);
     rmt_config(&rmt_rx);
     rmt_driver_install(rmt_rx.channel, 1000, 0);
-    //actually required, does not work with c++ threads, reason for wrapper taskreadChannels
+    // actually required, does not work with c++ threads, reason for wrapper taskreadChannels
     xTaskCreate(&taskreadChannels, "ppmtask", 2048, this, 10, NULL);
     std::cout << "PPM init done\n";
 }

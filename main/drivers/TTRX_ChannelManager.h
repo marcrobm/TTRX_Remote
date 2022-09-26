@@ -4,10 +4,11 @@
 #include <mutex>
 #include <inttypes.h>
 //only using RMT_CHANNEL_MAX
-#include "driver/rmt.h"
+//#include "driver/rmt_tx.h"
 #define LEDC_HIGH_CHANNEL_MAX 8
 #define LEDC_LOW_CHANNEL_MAX 8
 #define LEDC_TIMER_COUNT_MAX 4
+#define RMT_CHANNEL_MAX 8
 namespace TTRX_Remote
 {
      class ChannelManager
