@@ -6,6 +6,7 @@
 #include "driver/gpio.h"
 #include <iostream>
 #include <atomic>
+#include <functional>
 namespace TTRX_Remote
 {
     /* This always uses GPIO's 13,14,15,16,17,18,19,21 for data and 22 as a clock
@@ -13,8 +14,9 @@ namespace TTRX_Remote
     */
     class T30X{
         public:
-            T30X();
+            T30X(void (*onImageReceived)(uint8_t*,uint32_t));
             ~T30X();
+            static void printFrame(uint8_t* frame,uint32_t length);
         private:
             typedef struct{
                 uint8_t data;
@@ -23,6 +25,7 @@ namespace TTRX_Remote
             //this is a queue of queues where each subqueue contains the individual bytes of a frame
             QueueHandle_t gpio_evt_queue = NULL;
             std::atomic<int64_t> last_received_clock = 0;
+            void (*onImageReceived)(uint8_t*,uint32_t) = printFrame;
             static void clk_isr_handler(void* arg);
             static void data_parser_task(void* arg);
     };

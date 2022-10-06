@@ -81,7 +81,7 @@ void beacon_task(void *pvParameter) {
 void app_main(void)
 {
     cout << "Started Programm version 0.1 compilled on " << __DATE__ << " " << __TIME__ << endl;
-    auto interface = T30X();
+    auto interface = T30X(T30X::printFrame);
 	vTaskDelay(pdMS_TO_TICKS(150000000));
 	cout << "Programm finished\n";
 

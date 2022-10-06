@@ -2,15 +2,17 @@
 #include <bitset>
 #include <string>
 #include <cstring>
+#include <iomanip>
 #include "soc/gpio_reg.h"
 #include "esp_timer.h"
 
 namespace TTRX_Remote
 {
-    T30X::T30X(){      
+    T30X::T30X(void (*onImageReceived)(uint8_t*,uint32_t)){      
+        this->onImageReceived = onImageReceived;
         // configure the clock pin
         gpio_config_t io_conf = {};
-        io_conf.intr_type = GPIO_INTR_POSEDGE;
+        io_conf.intr_type = GPIO_INTR_NEGEDGE;
         // attach an interrupt on the clock pin
         io_conf.pin_bit_mask = (1ULL<<22); // GPIO 22 as a clk
         // disable pull down
@@ -49,11 +51,11 @@ namespace TTRX_Remote
         TTRX_Exception::ThrowOnEspErr(gpio_pullup_dis(GPIO_NUM_21));
 
         // Setup queue for captured frames
-        gpio_evt_queue = xQueueCreate(5000, sizeof(rdata));
+        gpio_evt_queue = xQueueCreate(3500, sizeof(rdata));
         if(!gpio_evt_queue){
             std::cout << "error creating frame queue:" << this << std::endl;
         }
-        xTaskCreate(data_parser_task, "data_parser_task", 4096, (void*)this, 10, NULL);
+        xTaskCreate(data_parser_task, "data_parser", 4096, (void*)this, 10, NULL);
         // install gpio isr service
         TTRX_Exception::ThrowOnEspErr(gpio_install_isr_service(ESP_INTR_FLAG_LEVEL3));
         // hook isr handler for clock pin and supply this object
@@ -82,45 +84,98 @@ namespace TTRX_Remote
     void T30X::data_parser_task(void* arg)
     {
         T30X* t = (T30X*)arg;
-        uint8_t frame[1540];
+        uint8_t frame[1600];
         int64_t last_rx_time = 0;
+        uint8_t*writepos = frame;
         for(;;) {
-            memset((void*)frame,0,1540);
-            uint8_t*writepos = frame;
-            
-            if(uxQueueMessagesWaiting(t->gpio_evt_queue) > 1539){
-                // read out a frame
-                while(writepos<frame+1540) {
-                    rdata read_byte;
-                    if(xQueueReceive(t->gpio_evt_queue, (void*)&read_byte, 0) == pdTRUE) {
-                        //writepos = ((read_byte.rx_time-last_rx_time) >= 10000)?frame:writepos+1;
-                        //std::cout << "diffTime:" << (read_byte.rx_time-last_rx_time) << std::endl;
-                        if((read_byte.rx_time-last_rx_time) >= 30000){ //30ms
-                            std::cout << "last image length:" << ((int)writepos-(int)frame) << std::endl;
-                            std::cout << "received a new image:" << read_byte.rx_time-last_rx_time << std::endl;
-                            writepos = frame;
-                            *writepos = read_byte.data;
-                            last_rx_time = read_byte.rx_time;
-                            break;
-                        }else{
-                            *writepos = read_byte.data;
-                            writepos++;
-                        }
-                        last_rx_time = read_byte.rx_time;
+            rdata read_byte;
+            if(xQueueReceive(t->gpio_evt_queue, (void*)&read_byte, 0) == pdTRUE) {
+                //std::cout << std::hex << (int)read_byte.data << " , " << read_byte.rx_time << " ; ";
+                if((read_byte.rx_time-last_rx_time) >= 16  || ((int)writepos-(int)frame)>=1536){ //3ms
+                    if(t->onImageReceived && ((int)writepos-(int)frame)>=1536){
+                        t->onImageReceived(frame,1539);
                     }
+                    writepos = frame;
+                    *writepos = read_byte.data;
+                }else{
+                    *writepos = read_byte.data;
+                    writepos++;
                 }
-
-                // Display a frame
-                for(int y = 0;y<64;y++){
-                    for(int x = 0;x<192;x++){
-                        std::cout << ((frame[x*8+(64-y)/8] & (128 >> (64-y)%8) )?'#':' ');
-                    }
-                    std::cout << std::endl;
-                }
-
+                last_rx_time = read_byte.rx_time;
+            }else{
+                vTaskDelay(pdMS_TO_TICKS(75));
             }
-            vTaskDelay(pdMS_TO_TICKS(15));
         }
     }
- 
+    //Function base64_encode taken from https://stackoverflow.com/questions/180947/base64-decode-snippet-in-c
+    static const std::string base64_chars =
+             "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+             "abcdefghijklmnopqrstuvwxyz"
+             "0123456789+/";
+    typedef unsigned char BYTE;
+    std::string base64_encode(BYTE const* buf, unsigned int bufLen) {
+  std::string ret;
+  int i = 0;
+  int j = 0;
+  BYTE char_array_3[3];
+  BYTE char_array_4[4];
+
+  while (bufLen--) {
+    char_array_3[i++] = *(buf++);
+    if (i == 3) {
+      char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
+      char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
+      char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
+      char_array_4[3] = char_array_3[2] & 0x3f;
+
+      for(i = 0; (i <4) ; i++)
+        ret += base64_chars[char_array_4[i]];
+      i = 0;
+    }
+  }
+
+  if (i)
+  {
+    for(j = i; j < 3; j++)
+      char_array_3[j] = '\0';
+
+    char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
+    char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
+    char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
+    char_array_4[3] = char_array_3[2] & 0x3f;
+
+    for (j = 0; (j < i + 1); j++)
+      ret += base64_chars[char_array_4[j]];
+
+    while((i++ < 3))
+      ret += '=';
+  }
+
+  return ret;
+}
+    void T30X::printFrame(uint8_t* frame,uint32_t length){ 
+        //std::cout << std::endl << base64_encode(frame, 1540) << std::endl;
+        for(int i = 0;i<10;i++) {
+            std::cout << (int)frame[i] << " ";
+        }
+        std::cout << std::endl;
+        for(int i = 0;i<10;i++) {
+            std::cout << (int)frame[1540-i] <<" ";
+        }
+        std::cout << std::endl;
+
+            for(int i = 0;i<194;i++){std::cout << "-";} 
+            std::cout << std::endl;     
+            for(int y = 0;y<64;y++){   
+                std::cout << "|";
+                    for(int x = 0;x<192;x++){
+                        std::cout << ((frame[x*8+((y+16)%64)/8] & (128 >> (((y+16)%64))%8) )?"\u2588":" ");
+                        //std::cout << ((frame[x*8+((y+48)%64)/8+8] & (128 >> (((y+48)%64))%8) )?'@':' ');
+                        //std::cout << ((frame[x*8+y/8] & (128 >> y%8))?'#':' ');
+                    }
+                std::cout << "|" << std::endl;
+                }
+            for(int i = 0;i<194;i++){std::cout << "-";}
+            std::cout << std::endl;      
+    }
 }
