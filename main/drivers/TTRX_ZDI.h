@@ -1,3 +1,5 @@
+// WIP untested and might be removed in the future, used to interface with the zilog debug protocoll 
+
 #ifndef TTRX_ZDI_H
 #define TTRX_ZDI_H
 #include "stdio.h"
