@@ -1,3 +1,12 @@
+/*
+* A Driver to monitor the Display used in the TI30x MathPrint Calculators
+* This always uses GPIO's 13,14,15,16,17,18,19,21 for data and 22 as a clock
+* (there aren't any sensible alternative pins on the esp32 for this application)
+* to use this Driver just create an instance of it and call printFrame
+* to print in to std::cout
+*/
+
+
 #ifndef TTRX_T30X_H
 #include "../TTRX_Exceptions.h"
 #include "freertos/FreeRTOS.h"
@@ -9,9 +18,6 @@
 #include <functional>
 namespace TTRX_Remote
 {
-    /* This always uses GPIO's 13,14,15,16,17,18,19,21 for data and 22 as a clock
-    * (there aren't any sensible alternative pins on the esp32 for this application)
-    */
     class T30X{
         public:
             T30X(void (*onImageReceived)(uint8_t*,uint32_t));
